@@ -1,6 +1,5 @@
 package com.example.wayfinder;
 
-
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -22,6 +21,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class Map_Fragment extends Fragment {
     public Map_Fragment() {
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -29,7 +29,7 @@ public class Map_Fragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_map_, container, false);
         SupportMapFragment supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.MY_MAP);
         supportMapFragment.getMapAsync(new OnMapReadyCallback() {
-            @Override //-0.6166642 30.65499738
+            @Override
             public void onMapReady(@NonNull GoogleMap googleMap) {
                 LatLng mbararaReferralHospital = new LatLng(-0.616389, 30.658889); // Latitude and Longitude for Mbarara Regional Referral Hospital
                 MarkerOptions markerOptions = new MarkerOptions()
@@ -39,12 +39,14 @@ public class Map_Fragment extends Fragment {
                 googleMap.addMarker(markerOptions);
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mbararaReferralHospital, 17)); // Adjust the zoom level to display the full view
 
-                // Enable zoom controls
+                // Disable gestures to restrict user interaction with the map
+                googleMap.getUiSettings().setAllGesturesEnabled(false);
+                googleMap.getUiSettings().setZoomControlsEnabled(false);
+
                 UiSettings uiSettings = googleMap.getUiSettings();
                 uiSettings.setZoomControlsEnabled(true);
             }
         });
-
 
         return view;
     }
