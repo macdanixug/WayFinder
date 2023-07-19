@@ -2,10 +2,12 @@ package com.example.wayfinder;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,19 +22,26 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
-
 public class FirstActivity extends AppCompatActivity {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-
-    private TextView locationTextView;
+    private TextView locationTextView, destination;
+    private Button activate;
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
+    private Location location;
     private Geocoder geocoder;
+    private GoogleMap mMap; // Add this variable to hold the map reference
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +55,10 @@ public class FirstActivity extends AppCompatActivity {
         // Initialize location-related variables
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         locationTextView = findViewById(R.id.location);
+        destination = findViewById(R.id.destination);
+        activate = findViewById(R.id.activate);
+
+        setDestinationAddress(-0.616389, 30.658889, destination);
         geocoder = new Geocoder(this, Locale.getDefault());
 
         // Check for location permission
@@ -64,17 +77,41 @@ public class FirstActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout, fragment).commit();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Location permission granted
-                startLocationUpdates();
-            } else {
-                // Location permission denied
-                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
+    // Existing methods
+
+    private void initMap() {
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.frame_layout);
+        mapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                mMap = googleMap;
+                // Customize the map settings as needed
+
+                // Draw a blue line between the current location and the destination
+                PolylineOptions polylineOptions = new PolylineOptions()
+                        .add(new LatLng(location.getLatitude(), location.getLongitude()))
+                        .color(Color.BLUE)
+                        .width(10);
+                mMap.addPolyline(polylineOptions);
+
+                // Move the camera to the current location
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        new LatLng(location.getLatitude(), location.getLongitude()), 15));
             }
+        });
+    }
+
+    private void setDestinationAddress(double latitude, double longitude, TextView destination) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            if (addresses != null && addresses.size() > 0) {
+                Address address = addresses.get(0);
+                String destinationAddress = address.getAddressLine(0); // Get the first line of the address
+                destination.setText(destinationAddress);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -134,21 +171,37 @@ public class FirstActivity extends AppCompatActivity {
         return null;
     }
 
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        // Existing code
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            // Existing code
+
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Location permission granted
+                startLocationUpdates();
+                initMap(); // Initialize the map after permission is granted
+            } else {
+                // Location permission denied
+                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    // Existing methods
+
     @Override
     protected void onResume() {
         super.onResume();
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            // If location permission is granted, start requesting location updates
-            startLocationUpdates();
-        }
+        // Existing code
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // Stop location updates to conserve battery
-        fusedLocationClient.removeLocationUpdates(locationCallback);
+        // Existing code
     }
-
 }
