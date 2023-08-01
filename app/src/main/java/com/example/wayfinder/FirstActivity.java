@@ -7,18 +7,32 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryEventListener;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
@@ -26,182 +40,175 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
+
+import org.w3c.dom.Text;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-public class FirstActivity extends AppCompatActivity {
 
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private TextView locationTextView, destination;
-    private Button activate;
-    private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;
-    private Location location;
-    private Geocoder geocoder;
-    private GoogleMap mMap; // Add this variable to hold the map reference
+import de.hdodenhof.circleimageview.CircleImageView;
+
+public class FirstActivity extends FragmentActivity implements OnMapReadyCallback,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener, AdapterView.OnItemSelectedListener {
+
+    private com.google.android.gms.location.LocationListener googleLocationListener;
+    private GoogleMap mMap;
+    GoogleApiClient googleApiClient;
+    Location LastLocation;
+    LocationRequest locationRequest;
+    private LatLng CustomerPickUpLocation;
+    private int radius = 1;
+    Marker destinationMarker, currentLocationMarker;
+    GeoQuery geoQuery;
+    String [] destination = {"Destination:","Pediatrics ", "Natasha Clinic", "OPD"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_first);
 
-        // Removing the action bar and title
-        getSupportActionBar().hide();
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
-        // Initialize location-related variables
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        locationTextView = findViewById(R.id.location);
-        destination = findViewById(R.id.destination);
-        activate = findViewById(R.id.activate);
+        Spinner spin = (Spinner) findViewById(R.id.destinationInput);
+        spin.setOnItemSelectedListener(this);
 
-        setDestinationAddress(-0.616389, 30.658889, destination);
-        geocoder = new Geocoder(this, Locale.getDefault());
-
-        // Check for location permission
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted, request it
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    LOCATION_PERMISSION_REQUEST_CODE);
-        } else {
-            // Permission is granted, start requesting location updates
-            startLocationUpdates();
-        }
-
-        Fragment fragment = new Map_Fragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.frame_layout, fragment).commit();
+        ArrayAdapter<String> destinationAdapter = new ArrayAdapter<>(this, R.layout.spinner_item, destination);
+        destinationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spin.setAdapter(destinationAdapter);
     }
 
-    // Existing methods
-
-    private void initMap() {
-        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.frame_layout);
-        mapFragment.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap googleMap) {
-                mMap = googleMap;
-                // Customize the map settings as needed
-
-                // Draw a blue line between the current location and the destination
-                PolylineOptions polylineOptions = new PolylineOptions()
-                        .add(new LatLng(location.getLatitude(), location.getLongitude()))
-                        .color(Color.BLUE)
-                        .width(10);
-                mMap.addPolyline(polylineOptions);
-
-                // Move the camera to the current location
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(location.getLatitude(), location.getLongitude()), 15));
-            }
-        });
-    }
-
-    private void setDestinationAddress(double latitude, double longitude, TextView destination) {
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        try {
-            List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-            if (addresses != null && addresses.size() > 0) {
-                Address address = addresses.get(0);
-                String destinationAddress = address.getAddressLine(0); // Get the first line of the address
-                destination.setText(destinationAddress);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void startLocationUpdates() {
-        // Create the location request
-        LocationRequest locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(5000)
-                .setFastestInterval(2000);
-
-        // Create the location callback
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                if (locationResult == null) {
-                    return;
-                }
-                for (Location location : locationResult.getLocations()) {
-                    // Get the address from the coordinates
-                    String address = getAddressFromLocation(location);
-                    if (address != null) {
-                        // Update the location TextView
-                        locationTextView.setText(address);
-                    }
-                }
-            }
-        };
-
-        // Start location updates
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+    @Override
+    public void onMapReady(GoogleMap googleMap)
+    {
+        mMap = googleMap;
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+
+        buildGoogleApiClient();
+        mMap.setMyLocationEnabled(true);
     }
 
-    private String getAddressFromLocation(Location location) {
-        try {
-            List<Address> addresses = geocoder.getFromLocation(
-                    location.getLatitude(),
-                    location.getLongitude(),
-                    1);
-            if (addresses != null && addresses.size() > 0) {
-                Address address = addresses.get(0);
-                // Concatenate the address lines to form a complete address
-                StringBuilder addressBuilder = new StringBuilder();
-                for (int i = 0; i <= address.getMaxAddressLineIndex(); i++) {
-                    addressBuilder.append(address.getAddressLine(i));
-                    if (i < address.getMaxAddressLineIndex()) {
-                        addressBuilder.append(", ");
-                    }
-                }
-                return addressBuilder.toString();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    @Override
+    public void onConnected(@Nullable Bundle bundle)
+    {
+        locationRequest = new LocationRequest();
+        locationRequest.setInterval(1000);
+        locationRequest.setFastestInterval(1000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            //
+
+            return;
         }
-        return null;
+         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location)
+    {
+        //getting the updated location
+        LastLocation = location;
+        mMap.clear();
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
+        CircleOptions circleOptions = new CircleOptions()
+                .center(latLng)
+                .radius(10)
+                .strokeWidth(3)
+                .strokeColor(Color.BLUE)
+                .fillColor(Color.argb(70, 0, 0, 255));
+
+        mMap.addCircle(circleOptions);
+    }
+
+
+    protected synchronized void buildGoogleApiClient()
+    {
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
+        googleApiClient.connect();
     }
 
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        // Existing code
+    protected void onStop()
+    {
+        super.onStop();
+    }
 
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            // Existing code
+    @Override
+    public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id) {
+        String selectedDestination = destination[position];
 
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Location permission granted
-                startLocationUpdates();
-                initMap(); // Initialize the map after permission is granted
-            } else {
-                // Location permission denied
-                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
-            }
+        if (selectedDestination.equals("Pediatrics")) {
+            Toast.makeText(this, "Pediatrics clicked", Toast.LENGTH_SHORT).show();
+           
+        }
+        else if (selectedDestination.equals("Natasha Clinic")) {
+            double latitude = -0.617086;
+            double longitude = 30.657504;
+            // Getting the updated location
+            LatLng clinicLocation = new LatLng(latitude, longitude);
+
+            destinationMarker = mMap.addMarker(new MarkerOptions()
+                    .position(clinicLocation)
+                    .title("Natasha Clinic")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+
+        }
+        else if (selectedDestination.equals("OPD")) {
+            Toast.makeText(this, "OPD clicked", Toast.LENGTH_SHORT).show();
+        }
+
+
+        else if (selectedDestination.equals("OPD")) {
+            Toast.makeText(this, "OPD clicked", Toast.LENGTH_SHORT).show();
+
         }
     }
-
-    // Existing methods
-
     @Override
-    protected void onResume() {
-        super.onResume();
-        // Existing code
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // Existing code
+    public void onNothingSelected(AdapterView<?> arg0) {
+        // TODO Auto-generated method stub
     }
 }
