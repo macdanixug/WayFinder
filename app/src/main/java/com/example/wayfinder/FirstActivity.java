@@ -80,7 +80,7 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
     private int radius = 1;
     Marker destinationMarker, currentLocationMarker;
     GeoQuery geoQuery;
-    String [] destination = {"Destination","Pediatrics ", "Natasha Clinic", "OPD"};
+    String [] destination = {"Destination","Pediatrics", "Natasha Clinic", "OPD"};
     private Polyline polyline;
 
     @Override
@@ -233,7 +233,26 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
         }
 
         else if (selectedDestination.equals("Pediatrics")) {
-            Toast.makeText(this, "Pediatrics Selected", Toast.LENGTH_SHORT).show();
+            double latitude = -0.617123;
+            double longitude = 30.658332;
+            // Getting the updated location
+            LatLng clinicLocation = new LatLng(latitude, longitude);
+
+            destinationMarker = mMap.addMarker(new MarkerOptions()
+                    .position(clinicLocation)
+                    .title("Pediatrics Clinic")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+
+            // Add a polyline between the user's current location and the destination
+            if (LastLocation != null) {
+                LatLng userLocation = new LatLng(LastLocation.getLatitude(), LastLocation.getLongitude());
+                PolylineOptions polylineOptions = new PolylineOptions()
+                        .add(userLocation, clinicLocation)
+                        .width(5)
+                        .color(Color.RED);
+
+                polyline = mMap.addPolyline(polylineOptions);
+            }
         }
 
 
