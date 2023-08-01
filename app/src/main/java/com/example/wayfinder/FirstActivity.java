@@ -46,6 +46,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -79,7 +80,8 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
     private int radius = 1;
     Marker destinationMarker, currentLocationMarker;
     GeoQuery geoQuery;
-    String [] destination = {"Destination:","Pediatrics ", "Natasha Clinic", "OPD"};
+    String [] destination = {"Destination","Pediatrics ", "Natasha Clinic", "OPD"};
+    private Polyline polyline;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,7 +128,7 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
 
             return;
         }
-         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
     }
 
     @Override
@@ -147,7 +149,7 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
         mMap.clear();
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
         CircleOptions circleOptions = new CircleOptions()
                 .center(latLng)
                 .radius(10)
@@ -181,10 +183,9 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
     public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id) {
         String selectedDestination = destination[position];
 
-        if (selectedDestination.equals("Pediatrics")) {
-            Toast.makeText(this, "Pediatrics clicked", Toast.LENGTH_SHORT).show();
-           
+        if (selectedDestination.equals("Destination")) {
         }
+
         else if (selectedDestination.equals("Natasha Clinic")) {
             double latitude = -0.617086;
             double longitude = 30.657504;
@@ -196,19 +197,50 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
                     .title("Natasha Clinic")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
 
+            // Add a polyline between the user's current location and the destination
+            if (LastLocation != null) {
+                LatLng userLocation = new LatLng(LastLocation.getLatitude(), LastLocation.getLongitude());
+                PolylineOptions polylineOptions = new PolylineOptions()
+                        .add(userLocation, clinicLocation)
+                        .width(5)
+                        .color(Color.RED);
+
+                polyline = mMap.addPolyline(polylineOptions);
+            }
         }
+
         else if (selectedDestination.equals("OPD")) {
-            Toast.makeText(this, "OPD clicked", Toast.LENGTH_SHORT).show();
+            double latitude = -0.616531;
+            double longitude = 30.658699;
+            // Getting the updated location
+            LatLng clinicLocation = new LatLng(latitude, longitude);
+
+            destinationMarker = mMap.addMarker(new MarkerOptions()
+                    .position(clinicLocation)
+                    .title("OPD")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+
+            // Add a polyline between the user's current location and the destination
+            if (LastLocation != null) {
+                LatLng userLocation = new LatLng(LastLocation.getLatitude(), LastLocation.getLongitude());
+                PolylineOptions polylineOptions = new PolylineOptions()
+                        .add(userLocation, clinicLocation)
+                        .width(5)
+                        .color(Color.RED);
+
+                polyline = mMap.addPolyline(polylineOptions);
+            }
+        }
+
+        else if (selectedDestination.equals("Pediatrics")) {
+            Toast.makeText(this, "Pediatrics Selected", Toast.LENGTH_SHORT).show();
         }
 
 
-        else if (selectedDestination.equals("OPD")) {
-            Toast.makeText(this, "OPD clicked", Toast.LENGTH_SHORT).show();
-
-        }
     }
+
     @Override
     public void onNothingSelected(AdapterView<?> arg0) {
-        // TODO Auto-generated method stub
+
     }
 }
