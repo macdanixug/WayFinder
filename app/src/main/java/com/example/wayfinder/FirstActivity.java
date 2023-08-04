@@ -1,16 +1,20 @@
 package com.example.wayfinder;
 
-import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.PopupMenu;
+
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -62,6 +66,7 @@ import com.squareup.picasso.Picasso;
 import org.w3c.dom.Text;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -134,6 +139,49 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
                 .strokeWidth(3)
                 .strokeColor(Color.BLUE)
                 .fillColor(Color.argb(70, 0, 0, 255)));
+
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                if (marker.getTitle() != null && marker.getTitle().contains("Natasha Clinic")) {
+                    // Inflate the custom popup layout
+                    View popupView = getLayoutInflater().inflate(R.layout.custom_popup_layout, null);
+
+                    int popupWidth = 600; // Specify the desired width in pixels
+                    PopupWindow popupWindow = new PopupWindow(
+                            popupView,
+                            popupWidth,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            true
+                    );
+                    TextView doctorNameTextView = popupView.findViewById(R.id.doctorName);
+                    doctorNameTextView.setText("Doctor Name");
+                    TextView doctorTelTextView = popupView.findViewById(R.id.doctorTel);
+                    doctorTelTextView.setText("Doctor Number");
+
+                    TextView doctor1TextView = popupView.findViewById(R.id.doctor1);
+                    doctor1TextView.setText("Oluga Daniel");
+                    TextView doctor1TelTextView = popupView.findViewById(R.id.doctor1Tel);
+                    doctor1TelTextView.setText("0755332706");
+
+                    TextView doctor2TextView = popupView.findViewById(R.id.doctor2);
+                    doctor2TextView.setText("Akamumpa Doreen");
+                    TextView doctor2TelTextView = popupView.findViewById(R.id.doctor2Tel);
+                    doctor2TelTextView.setText("0778476663");
+
+                    // Show the PopupWindow at the center of the screen
+                    popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
+                }
+                return true;
+            }
+
+
+
+        });
+
+
     }
 
 
@@ -217,10 +265,10 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
             double longitude = 30.657504;
             // Getting the updated location
             LatLng clinicLocation = new LatLng(latitude, longitude);
-
+            String dayOfWeek = getDayOfWeek();
             destinationMarker = mMap.addMarker(new MarkerOptions()
                     .position(clinicLocation)
-                    .title("Natasha Clinic")
+                    .title("Natasha Clinic "+dayOfWeek)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
             previousMarker = destinationMarker;
 
@@ -249,10 +297,10 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
             double longitude = 30.658699;
             // Getting the updated location
             LatLng clinicLocation = new LatLng(latitude, longitude);
-
+            String dayOfWeek = getDayOfWeek();
             destinationMarker = mMap.addMarker(new MarkerOptions()
                     .position(clinicLocation)
-                    .title("OPD")
+                    .title("OPD "+dayOfWeek)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
             previousMarker = destinationMarker;
 
@@ -279,10 +327,10 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
             double longitude = 30.658332;
             // Getting the updated location
             LatLng clinicLocation = new LatLng(latitude, longitude);
-
+            String dayOfWeek = getDayOfWeek();
             destinationMarker = mMap.addMarker(new MarkerOptions()
                     .position(clinicLocation)
-                    .title("Pediatrics Clinic")
+                    .title("Pediatrics Clinic "+dayOfWeek)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
             previousMarker = destinationMarker;
 
@@ -309,5 +357,11 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
     @Override
     public void onNothingSelected(AdapterView<?> arg0) {
 
+    }
+
+    private String getDayOfWeek() {
+        String[] daysOfWeek = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+        int dayIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+        return daysOfWeek[dayIndex - 1];
     }
 }
