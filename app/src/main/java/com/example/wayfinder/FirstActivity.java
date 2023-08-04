@@ -143,6 +143,7 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
 
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 
+
             @Override
             public boolean onMarkerClick(Marker marker) {
                 if (marker.getTitle() != null && marker.getTitle().contains("Natasha Clinic")) {
@@ -156,27 +157,245 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
                             ViewGroup.LayoutParams.WRAP_CONTENT,
                             true
                     );
+
+                    TextView titleFacility = popupView.findViewById(R.id.facilityTitle);
+                    titleFacility.setText(marker.getTitle());
+
                     TextView doctorNameTextView = popupView.findViewById(R.id.doctorName);
                     doctorNameTextView.setText("Doctor Name");
                     TextView doctorTelTextView = popupView.findViewById(R.id.doctorTel);
                     doctorTelTextView.setText("Doctor Number");
 
+                    String dayOfWeek = getDayOfWeek();
+
                     TextView doctor1TextView = popupView.findViewById(R.id.doctor1);
-                    doctor1TextView.setText("Oluga Daniel");
                     TextView doctor1TelTextView = popupView.findViewById(R.id.doctor1Tel);
-                    doctor1TelTextView.setText("0755332706");
 
                     TextView doctor2TextView = popupView.findViewById(R.id.doctor2);
-                    doctor2TextView.setText("Akamumpa Doreen");
                     TextView doctor2TelTextView = popupView.findViewById(R.id.doctor2Tel);
-                    doctor2TelTextView.setText("0778476663");
+
+                    if (dayOfWeek.equals("Sunday")) {
+                        doctor1TextView.setText("Doctor 1 (Sunday)");
+                        doctor1TelTextView.setText("Contact 1 (Sunday)");
+
+                        doctor2TextView.setText("Doctor 2 (Sunday)");
+                        doctor2TelTextView.setText("Contact 2 (Sunday)");
+                    }
+                    else if (dayOfWeek.equals("Monday")) {
+                        doctor1TextView.setText("Doctor 1 (Monday)");
+                        doctor1TelTextView.setText("Contact 1 (Monday)");
+
+                        doctor2TextView.setText("Doctor 2 (Monday)");
+                        doctor2TelTextView.setText("Contact 2 (Monday)");
+                    }
+                    else if (dayOfWeek.equals("Tuesday")) {
+                        doctor1TextView.setText("Doctor 1 (Tuesday)");
+                        doctor1TelTextView.setText("Contact 1 (Tuesday)");
+
+                        doctor2TextView.setText("Doctor 2 (Tuesday)");
+                        doctor2TelTextView.setText("Contact 2 (Tuesday)");
+                    }
+                    else if (dayOfWeek.equals("Wednesday")) {
+                        doctor1TextView.setText("Doctor 1 (Wednesday)");
+                        doctor1TelTextView.setText("Contact 1 (Wednesday)");
+
+                        doctor2TextView.setText("Doctor 2 (Wednesday)");
+                        doctor2TelTextView.setText("Contact 2 (Wednesday)");
+                    }
+                    else if (dayOfWeek.equals("Thursday")) {
+                        doctor1TextView.setText("Doctor 1 (Thursday)");
+                        doctor1TelTextView.setText("Contact 1 (Thursday)");
+
+                        doctor2TextView.setText("Doctor 2 (Thursday)");
+                        doctor2TelTextView.setText("Contact 2 (Thursday)");
+                    }
+                    else if (dayOfWeek.equals("Friday")) {
+                        doctor1TextView.setText("Doctor 1 (Friday)");
+                        doctor1TelTextView.setText("Contact 1 (Friday)");
+
+                        doctor2TextView.setText("Doctor 2 (Friday)");
+                        doctor2TelTextView.setText("Contact 2 (Friday)");
+                    }
+                    else if (dayOfWeek.equals("Saturday")) {
+                        doctor1TextView.setText("Doctor 1 (Saturday)");
+                        doctor1TelTextView.setText("Contact 1 (Saturday)");
+
+                        doctor2TextView.setText("Doctor 2 (Saturday)");
+                        doctor2TelTextView.setText("Contact 2 (Saturday)");
+                    }
+
 
                     // Show the PopupWindow at the center of the screen
                     popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
                 }
+
+                else  if (marker.getTitle() != null && marker.getTitle().contains("Pediatrics")) {
+                    // Inflate the custom popup layout
+                    View popupView = getLayoutInflater().inflate(R.layout.custom_popup_layout, null);
+
+                    int popupWidth = 600; // Specify the desired width in pixels
+                    PopupWindow popupWindow = new PopupWindow(
+                            popupView,
+                            popupWidth,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            true
+                    );
+
+                    TextView titleFacility = popupView.findViewById(R.id.facilityTitle);
+                    titleFacility.setText(marker.getTitle());
+
+                    TextView doctorNameTextView = popupView.findViewById(R.id.doctorName);
+                    doctorNameTextView.setText("Doctor Name");
+                    TextView doctorTelTextView = popupView.findViewById(R.id.doctorTel);
+                    doctorTelTextView.setText("Doctor Number");
+
+                    String dayOfWeek = getDayOfWeek();
+
+                    TextView doctor1TextView = popupView.findViewById(R.id.doctor1);
+                    TextView doctor1TelTextView = popupView.findViewById(R.id.doctor1Tel);
+
+                    TextView doctor2TextView = popupView.findViewById(R.id.doctor2);
+                    TextView doctor2TelTextView = popupView.findViewById(R.id.doctor2Tel);
+
+                    if (dayOfWeek.equals("Sunday")) {
+                        doctor1TextView.setText("Doctor 1 (Sunday)");
+                        doctor1TelTextView.setText("Contact 1 (Sunday)");
+
+                        doctor2TextView.setText("Doctor 2 (Sunday)");
+                        doctor2TelTextView.setText("Contact 2 (Sunday)");
+                    }
+                    else if (dayOfWeek.equals("Monday")) {
+                        doctor1TextView.setText("Doctor 1 (Monday)");
+                        doctor1TelTextView.setText("Contact 1 (Monday)");
+
+                        doctor2TextView.setText("Doctor 2 (Monday)");
+                        doctor2TelTextView.setText("Contact 2 (Monday)");
+                    }
+                    else if (dayOfWeek.equals("Tuesday")) {
+                        doctor1TextView.setText("Doctor 1 (Tuesday)");
+                        doctor1TelTextView.setText("Contact 1 (Tuesday)");
+
+                        doctor2TextView.setText("Doctor 2 (Tuesday)");
+                        doctor2TelTextView.setText("Contact 2 (Tuesday)");
+                    }
+                    else if (dayOfWeek.equals("Wednesday")) {
+                        doctor1TextView.setText("Doctor 1 (Wednesday)");
+                        doctor1TelTextView.setText("Contact 1 (Wednesday)");
+
+                        doctor2TextView.setText("Doctor 2 (Wednesday)");
+                        doctor2TelTextView.setText("Contact 2 (Wednesday)");
+                    }
+                    else if (dayOfWeek.equals("Thursday")) {
+                        doctor1TextView.setText("Doctor 1 (Thursday)");
+                        doctor1TelTextView.setText("Contact 1 (Thursday)");
+
+                        doctor2TextView.setText("Doctor 2 (Thursday)");
+                        doctor2TelTextView.setText("Contact 2 (Thursday)");
+                    }
+                    else if (dayOfWeek.equals("Friday")) {
+                        doctor1TextView.setText("Doctor 1 (Friday)");
+                        doctor1TelTextView.setText("Contact 1 (Friday)");
+
+                        doctor2TextView.setText("Doctor 2 (Friday)");
+                        doctor2TelTextView.setText("Contact 2 (Friday)");
+                    }
+                    else if (dayOfWeek.equals("Saturday")) {
+                        doctor1TextView.setText("Doctor 1 (Saturday)");
+                        doctor1TelTextView.setText("Contact 1 (Saturday)");
+
+                        doctor2TextView.setText("Doctor 2 (Saturday)");
+                        doctor2TelTextView.setText("Contact 2 (Saturday)");
+                    }
+
+
+                    // Show the PopupWindow at the center of the screen
+                    popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
+                }
+
+                else  if (marker.getTitle() != null && marker.getTitle().contains("OPD")) {
+                    // Inflate the custom popup layout
+                    View popupView = getLayoutInflater().inflate(R.layout.custom_popup_layout, null);
+
+                    int popupWidth = 600; // Specify the desired width in pixels
+                    PopupWindow popupWindow = new PopupWindow(
+                            popupView,
+                            popupWidth,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            true
+                    );
+                    TextView titleFacility = popupView.findViewById(R.id.facilityTitle);
+                    titleFacility.setText(marker.getTitle());
+
+                    TextView doctorNameTextView = popupView.findViewById(R.id.doctorName);
+                    doctorNameTextView.setText("Doctor Name");
+                    TextView doctorTelTextView = popupView.findViewById(R.id.doctorTel);
+                    doctorTelTextView.setText("Doctor Number");
+
+                    String dayOfWeek = getDayOfWeek();
+
+                    TextView doctor1TextView = popupView.findViewById(R.id.doctor1);
+                    TextView doctor1TelTextView = popupView.findViewById(R.id.doctor1Tel);
+
+                    TextView doctor2TextView = popupView.findViewById(R.id.doctor2);
+                    TextView doctor2TelTextView = popupView.findViewById(R.id.doctor2Tel);
+
+                    if (dayOfWeek.equals("Sunday")) {
+                        doctor1TextView.setText("Doctor 1 (Sunday)");
+                        doctor1TelTextView.setText("Contact 1 (Sunday)");
+
+                        doctor2TextView.setText("Doctor 2 (Sunday)");
+                        doctor2TelTextView.setText("Contact 2 (Sunday)");
+                    }
+                    else if (dayOfWeek.equals("Monday")) {
+                        doctor1TextView.setText("Doctor 1 (Monday)");
+                        doctor1TelTextView.setText("Contact 1 (Monday)");
+
+                        doctor2TextView.setText("Doctor 2 (Monday)");
+                        doctor2TelTextView.setText("Contact 2 (Monday)");
+                    }
+                    else if (dayOfWeek.equals("Tuesday")) {
+                        doctor1TextView.setText("Doctor 1 (Tuesday)");
+                        doctor1TelTextView.setText("Contact 1 (Tuesday)");
+
+                        doctor2TextView.setText("Doctor 2 (Tuesday)");
+                        doctor2TelTextView.setText("Contact 2 (Tuesday)");
+                    }
+                    else if (dayOfWeek.equals("Wednesday")) {
+                        doctor1TextView.setText("Doctor 1 (Wednesday)");
+                        doctor1TelTextView.setText("Contact 1 (Wednesday)");
+
+                        doctor2TextView.setText("Doctor 2 (Wednesday)");
+                        doctor2TelTextView.setText("Contact 2 (Wednesday)");
+                    }
+                    else if (dayOfWeek.equals("Thursday")) {
+                        doctor1TextView.setText("Doctor 1 (Thursday)");
+                        doctor1TelTextView.setText("Contact 1 (Thursday)");
+
+                        doctor2TextView.setText("Doctor 2 (Thursday)");
+                        doctor2TelTextView.setText("Contact 2 (Thursday)");
+                    }
+                    else if (dayOfWeek.equals("Friday")) {
+                        doctor1TextView.setText("Doctor 1 (Friday)");
+                        doctor1TelTextView.setText("Contact 1 (Friday)");
+
+                        doctor2TextView.setText("Doctor 2 (Friday)");
+                        doctor2TelTextView.setText("Contact 2 (Friday)");
+                    }
+                    else if (dayOfWeek.equals("Saturday")) {
+                        doctor1TextView.setText("Doctor 1 (Saturday)");
+                        doctor1TelTextView.setText("Contact 1 (Saturday)");
+
+                        doctor2TextView.setText("Doctor 2 (Saturday)");
+                        doctor2TelTextView.setText("Contact 2 (Saturday)");
+                    }
+
+
+                    // Show the PopupWindow at the center of the screen
+                    popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
+                }
+
                 return true;
             }
-
 
 
         });
@@ -268,7 +487,7 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
             String dayOfWeek = getDayOfWeek();
             destinationMarker = mMap.addMarker(new MarkerOptions()
                     .position(clinicLocation)
-                    .title("Natasha Clinic "+dayOfWeek)
+                    .title("Natasha Clinic")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
             previousMarker = destinationMarker;
 
@@ -300,7 +519,7 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
             String dayOfWeek = getDayOfWeek();
             destinationMarker = mMap.addMarker(new MarkerOptions()
                     .position(clinicLocation)
-                    .title("OPD "+dayOfWeek)
+                    .title("OPD")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
             previousMarker = destinationMarker;
 
@@ -330,7 +549,7 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
             String dayOfWeek = getDayOfWeek();
             destinationMarker = mMap.addMarker(new MarkerOptions()
                     .position(clinicLocation)
-                    .title("Pediatrics Clinic "+dayOfWeek)
+                    .title("Pediatrics Clinic")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
             previousMarker = destinationMarker;
 
