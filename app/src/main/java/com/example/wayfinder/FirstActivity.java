@@ -42,8 +42,10 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -78,10 +80,12 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
     LocationRequest locationRequest;
     private LatLng CustomerPickUpLocation;
     private int radius = 1;
-    Marker destinationMarker, currentLocationMarker;
+    Marker destinationMarker, previousMarker;
     GeoQuery geoQuery;
     String [] destination = {"Destination","Pediatrics", "Natasha Clinic", "OPD"};
-    private Polyline polyline;
+    private Polyline polyline,previousPolyline;
+    private Circle userLocationCircle;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,16 +105,37 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap)
-    {
+    public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
-        buildGoogleApiClient();
         mMap.setMyLocationEnabled(true);
+
+        LatLngBounds bounds = new LatLngBounds(
+                new LatLng(-0.6169113, 30.657587),
+                new LatLng(-0.6169113, 30.657587)
+        );
+
+        LatLng centerLatLng = bounds.getCenter();
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(centerLatLng));
+
+        mMap.setMinZoomPreference(13);
+        mMap.setMaxZoomPreference(20);
+        mMap.setLatLngBoundsForCameraTarget(bounds);
+
+        buildGoogleApiClient();
+
+        // Create the user's current location circle
+        userLocationCircle = mMap.addCircle(new CircleOptions()
+                .center(new LatLng(0, 0))
+                .radius(10)
+                .strokeWidth(3)
+                .strokeColor(Color.BLUE)
+                .fillColor(Color.argb(70, 0, 0, 255)));
     }
+
 
     @Override
     public void onConnected(@Nullable Bundle bundle)
@@ -142,27 +167,28 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onLocationChanged(Location location)
-    {
-        //getting the updated location
+    public void onLocationChanged(Location location) {
+        // Getting the updated location
         LastLocation = location;
-        mMap.clear();
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(16));
-        CircleOptions circleOptions = new CircleOptions()
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(17));
+
+        // Remove the previous user's current location circle from the map
+        if (userLocationCircle != null) {
+            userLocationCircle.remove();
+        }
+
+        // Update the user's current location circle
+        userLocationCircle = mMap.addCircle(new CircleOptions()
                 .center(latLng)
                 .radius(10)
                 .strokeWidth(3)
                 .strokeColor(Color.BLUE)
-                .fillColor(Color.argb(70, 0, 0, 255));
-
-        mMap.addCircle(circleOptions);
+                .fillColor(Color.argb(70, 0, 0, 255)));
     }
 
-
-    protected synchronized void buildGoogleApiClient()
-    {
+    protected synchronized void buildGoogleApiClient() {
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -182,11 +208,11 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
     @Override
     public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id) {
         String selectedDestination = destination[position];
-
-        if (selectedDestination.equals("Destination")) {
+        if (previousMarker != null) {
+            previousMarker.remove();
         }
 
-        else if (selectedDestination.equals("Natasha Clinic")) {
+        if (selectedDestination.equals("Natasha Clinic")) {
             double latitude = -0.617086;
             double longitude = 30.657504;
             // Getting the updated location
@@ -196,17 +222,26 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
                     .position(clinicLocation)
                     .title("Natasha Clinic")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+            previousMarker = destinationMarker;
 
-            // Add a polyline between the user's current location and the destination
+            if (previousPolyline != null) {
+                previousPolyline.remove();
+            }
+
             if (LastLocation != null) {
                 LatLng userLocation = new LatLng(LastLocation.getLatitude(), LastLocation.getLongitude());
                 PolylineOptions polylineOptions = new PolylineOptions()
                         .add(userLocation, clinicLocation)
                         .width(5)
-                        .color(Color.RED);
+                        .color(Color.BLUE);
+                previousMarker = destinationMarker;
 
                 polyline = mMap.addPolyline(polylineOptions);
+
+                // Update the previousPolyline with the new polyline
+                previousPolyline = polyline;
             }
+
         }
 
         else if (selectedDestination.equals("OPD")) {
@@ -219,16 +254,23 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
                     .position(clinicLocation)
                     .title("OPD")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+            previousMarker = destinationMarker;
 
-            // Add a polyline between the user's current location and the destination
+            if (previousPolyline != null) {
+                previousPolyline.remove();
+            }
+
             if (LastLocation != null) {
                 LatLng userLocation = new LatLng(LastLocation.getLatitude(), LastLocation.getLongitude());
                 PolylineOptions polylineOptions = new PolylineOptions()
                         .add(userLocation, clinicLocation)
                         .width(5)
-                        .color(Color.RED);
+                        .color(Color.BLUE);
 
                 polyline = mMap.addPolyline(polylineOptions);
+
+                // Update the previousPolyline with the new polyline
+                previousPolyline = polyline;
             }
         }
 
@@ -242,16 +284,22 @@ public class FirstActivity extends FragmentActivity implements OnMapReadyCallbac
                     .position(clinicLocation)
                     .title("Pediatrics Clinic")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+            previousMarker = destinationMarker;
 
-            // Add a polyline between the user's current location and the destination
+            if (previousPolyline != null) {
+                previousPolyline.remove();
+            }
+
             if (LastLocation != null) {
                 LatLng userLocation = new LatLng(LastLocation.getLatitude(), LastLocation.getLongitude());
                 PolylineOptions polylineOptions = new PolylineOptions()
                         .add(userLocation, clinicLocation)
                         .width(5)
-                        .color(Color.RED);
+                        .color(Color.BLUE);
 
                 polyline = mMap.addPolyline(polylineOptions);
+
+                previousPolyline = polyline;
             }
         }
 
